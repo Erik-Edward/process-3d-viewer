@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process 3D Viewer</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="toolbar">
+        <h1>Process 3D Viewer</h1>
+    </div>
+
+    <div id="info-panel">
+        <h2 id="info-title">Klicka på en komponent</h2>
+        <div id="info-details">
+            <p>Rotera: vänster musknapp</p>
+            <p>Zooma: scrollhjul</p>
+            <p>Panorera: höger musknapp</p>
+        </div>
+    </div>
+
+    <div id="legend">
+        <h3>Medium</h3>
+        <div class="legend-item"><span class="legend-color" style="background:#2255aa"></span>Vatten</div>
+        <div class="legend-item"><span class="legend-color" style="background:#44bb44"></span>Produkt</div>
+        <div class="legend-item"><span class="legend-color" style="background:#ff8833"></span>Gas</div>
+        <div class="legend-item"><span class="legend-color" style="background:#66ccff"></span>Luft</div>
+        <div class="legend-item"><span class="legend-color" style="background:#999999"></span>Ånga</div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
