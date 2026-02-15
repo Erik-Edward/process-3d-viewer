@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { processData } from './data/sample-process.js';
-import { createTank, createPump, createValve, createHeatExchanger, createColumn, createPipe, mediumParticleColors } from './components.js';
+import { createTank, createPump, createValve, createHeatExchanger, createColumn, createCompressor, createReactor, createFurnace, createPipe, mediumParticleColors } from './components.js';
 
 // --- Renderer ---
 const canvas = document.getElementById('canvas');
@@ -15,7 +15,7 @@ const scene = new THREE.Scene();
 
 // --- Kamera ---
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
-camera.position.set(16, 14, 16);
+camera.position.set(20, 18, 20);
 
 // --- Ljus ---
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
@@ -31,14 +31,14 @@ fillLight.position.set(-5, -5, -5);
 scene.add(fillLight);
 
 // --- Markplan ---
-const gridHelper = new THREE.GridHelper(40, 40, 0x333355, 0x222244);
+const gridHelper = new THREE.GridHelper(50, 50, 0x333355, 0x222244);
 scene.add(gridHelper);
 
 // --- OrbitControls ---
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
-controls.target.set(0, 2, -3);
+controls.target.set(0, 2, -4);
 
 // --- Bygg scenen från processdata ---
 const componentMap = new Map(); // id -> THREE.Group
@@ -49,7 +49,10 @@ const factories = {
     pump: createPump,
     valve: createValve,
     heatExchanger: createHeatExchanger,
-    column: createColumn
+    column: createColumn,
+    compressor: createCompressor,
+    reactor: createReactor,
+    furnace: createFurnace
 };
 
 for (const comp of processData.components) {
@@ -70,7 +73,10 @@ const labelHeight = {
     pump: 2.2,
     valve: 2.6,
     heatExchanger: 2.8,
-    column: 10.0
+    column: 10.0,
+    compressor: 3.5,
+    reactor: 7.5,
+    furnace: 8.0
 };
 
 function createLabel(text, component) {
@@ -313,7 +319,10 @@ const typeLabels = {
     pump: 'Pump',
     valve: 'Ventil',
     heatExchanger: 'Värmeväxlare',
-    column: 'Kolonn'
+    column: 'Kolonn',
+    compressor: 'Kompressor',
+    reactor: 'Reaktor',
+    furnace: 'Ugn'
 };
 
 function showInfo(data) {

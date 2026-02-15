@@ -46,6 +46,41 @@ const materials = {
         color: 0x667788,
         metalness: 0.5,
         roughness: 0.4
+    }),
+    compressor: new THREE.MeshStandardMaterial({
+        color: 0x5588aa,
+        metalness: 0.55,
+        roughness: 0.35
+    }),
+    compressorMotor: new THREE.MeshStandardMaterial({
+        color: 0x446688,
+        metalness: 0.5,
+        roughness: 0.4
+    }),
+    reactor: new THREE.MeshStandardMaterial({
+        color: 0x77aa77,
+        metalness: 0.5,
+        roughness: 0.35
+    }),
+    reactorJacket: new THREE.MeshStandardMaterial({
+        color: 0x669966,
+        metalness: 0.45,
+        roughness: 0.4
+    }),
+    furnace: new THREE.MeshStandardMaterial({
+        color: 0xcc6633,
+        metalness: 0.3,
+        roughness: 0.6
+    }),
+    furnaceFirebox: new THREE.MeshStandardMaterial({
+        color: 0xaa4422,
+        metalness: 0.2,
+        roughness: 0.7
+    }),
+    furnaceStack: new THREE.MeshStandardMaterial({
+        color: 0x777777,
+        metalness: 0.4,
+        roughness: 0.5
     })
 };
 
@@ -294,6 +329,198 @@ export function createColumn(data) {
     group.add(skirt);
 
     group.userData.connectionRadius = radius + 0.4;
+    group.userData.connectionHeight = 0.8;
+
+    return group;
+}
+
+/**
+ * Skapar en kompressor (stor motor + cylinder med koniskt inlopp)
+ */
+export function createCompressor(data) {
+    const group = new THREE.Group();
+    group.userData = { id: data.id, type: data.type, name: data.name, description: data.description };
+
+    const baseY = 0.4;
+
+    // Kompressorhus - horisontell cylinder
+    const casingGeom = new THREE.CylinderGeometry(0.8, 0.8, 2.0, 32);
+    const casing = new THREE.Mesh(casingGeom, materials.compressor);
+    casing.rotation.z = Math.PI / 2;
+    casing.position.y = baseY + 0.8;
+    group.add(casing);
+
+    // Koniskt inlopp (vänster)
+    const inletGeom = new THREE.CylinderGeometry(0.3, 0.8, 0.6, 32);
+    const inlet = new THREE.Mesh(inletGeom, materials.compressor);
+    inlet.rotation.z = Math.PI / 2;
+    inlet.position.set(-1.3, baseY + 0.8, 0);
+    group.add(inlet);
+
+    // Utlopp (höger)
+    const outletGeom = new THREE.CylinderGeometry(0.35, 0.35, 0.5, 16);
+    const outlet = new THREE.Mesh(outletGeom, materials.compressor);
+    outlet.rotation.z = Math.PI / 2;
+    outlet.position.set(1.25, baseY + 0.8, 0);
+    group.add(outlet);
+
+    // Motor
+    const motorGeom = new THREE.BoxGeometry(1.2, 0.9, 1.0);
+    const motor = new THREE.Mesh(motorGeom, materials.compressorMotor);
+    motor.position.set(0, baseY + 2.0, 0);
+    group.add(motor);
+
+    // Kylflänsar på motorn
+    for (let i = -2; i <= 2; i++) {
+        const finGeom = new THREE.BoxGeometry(1.3, 0.03, 1.1);
+        const fin = new THREE.Mesh(finGeom, materials.compressorMotor);
+        fin.position.set(0, baseY + 1.7 + i * 0.15, 0);
+        group.add(fin);
+    }
+
+    // Bas/fundament
+    const baseGeom = new THREE.BoxGeometry(2.4, 0.4, 1.4);
+    const base = new THREE.Mesh(baseGeom, materials.handwheel);
+    base.position.y = 0.2;
+    group.add(base);
+
+    group.userData.connectionRadius = 1.6;
+    group.userData.connectionHeight = baseY + 0.8;
+
+    return group;
+}
+
+/**
+ * Skapar en reaktor (vertikalt kärl med omrörare och kylmantel)
+ */
+export function createReactor(data) {
+    const group = new THREE.Group();
+    group.userData = { id: data.id, type: data.type, name: data.name, description: data.description };
+
+    const radius = 1.3;
+    const bodyHeight = 4;
+    const baseY = radius;
+
+    // Reaktorkropp
+    const bodyGeom = new THREE.CylinderGeometry(radius, radius, bodyHeight, 32);
+    const body = new THREE.Mesh(bodyGeom, materials.reactor);
+    body.position.y = baseY + bodyHeight / 2;
+    group.add(body);
+
+    // Topkupol
+    const topGeom = new THREE.SphereGeometry(radius, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+    const top = new THREE.Mesh(topGeom, materials.reactor);
+    top.position.y = baseY + bodyHeight;
+    group.add(top);
+
+    // Bottenkupol
+    const bottomGeom = new THREE.SphereGeometry(radius, 32, 16, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+    const bottom = new THREE.Mesh(bottomGeom, materials.reactor);
+    bottom.position.y = baseY;
+    group.add(bottom);
+
+    // Kylmantel (jacket) - synlig som yttercylinder med gap
+    const jacketGeom = new THREE.CylinderGeometry(radius + 0.15, radius + 0.15, bodyHeight * 0.7, 32, 1, true);
+    const jacket = new THREE.Mesh(jacketGeom, materials.reactorJacket);
+    jacket.position.y = baseY + bodyHeight * 0.45;
+    group.add(jacket);
+
+    // Mantelringar (topp/bott)
+    const ringGeom = new THREE.TorusGeometry(radius + 0.15, 0.06, 8, 32);
+    const ringTop = new THREE.Mesh(ringGeom, materials.reactorJacket);
+    ringTop.rotation.x = Math.PI / 2;
+    ringTop.position.y = baseY + bodyHeight * 0.8;
+    group.add(ringTop);
+
+    const ringBot = new THREE.Mesh(ringGeom.clone(), materials.reactorJacket);
+    ringBot.rotation.x = Math.PI / 2;
+    ringBot.position.y = baseY + bodyHeight * 0.1;
+    group.add(ringBot);
+
+    // Omrörare - motor ovanpå
+    const motorGeom = new THREE.CylinderGeometry(0.3, 0.3, 0.6, 16);
+    const motor = new THREE.Mesh(motorGeom, materials.handwheel);
+    motor.position.y = baseY + bodyHeight + radius + 0.3;
+    group.add(motor);
+
+    // Omrörarstång
+    const shaftGeom = new THREE.CylinderGeometry(0.05, 0.05, bodyHeight * 0.8, 8);
+    const shaft = new THREE.Mesh(shaftGeom, materials.handwheel);
+    shaft.position.y = baseY + bodyHeight * 0.5;
+    group.add(shaft);
+
+    // Omrörarblad
+    const bladeGeom = new THREE.BoxGeometry(1.2, 0.06, 0.2);
+    const blade1 = new THREE.Mesh(bladeGeom, materials.handwheel);
+    blade1.position.y = baseY + bodyHeight * 0.3;
+    group.add(blade1);
+
+    const blade2 = new THREE.Mesh(bladeGeom.clone(), materials.handwheel);
+    blade2.rotation.y = Math.PI / 2;
+    blade2.position.y = baseY + bodyHeight * 0.55;
+    group.add(blade2);
+
+    group.userData.connectionRadius = radius + 0.2;
+    group.userData.connectionHeight = 0.8;
+
+    return group;
+}
+
+/**
+ * Skapar en ugn/fired heater (fyrkantig eldstad med skorsten)
+ */
+export function createFurnace(data) {
+    const group = new THREE.Group();
+    group.userData = { id: data.id, type: data.type, name: data.name, description: data.description };
+
+    // Eldstad (firebox)
+    const fireboxGeom = new THREE.BoxGeometry(2.4, 3.0, 2.0);
+    const firebox = new THREE.Mesh(fireboxGeom, materials.furnace);
+    firebox.position.y = 1.5;
+    group.add(firebox);
+
+    // Eldstadsöppning (mörkare front)
+    const doorGeom = new THREE.BoxGeometry(0.8, 1.0, 0.05);
+    const door = new THREE.Mesh(doorGeom, materials.furnaceFirebox);
+    door.position.set(0, 0.8, 1.03);
+    group.add(door);
+
+    // Konvektionssektion (ovanpå)
+    const convGeom = new THREE.BoxGeometry(2.4, 1.2, 2.0);
+    const conv = new THREE.Mesh(convGeom, materials.furnaceFirebox);
+    conv.position.y = 3.6;
+    group.add(conv);
+
+    // Skorsten
+    const stackGeom = new THREE.CylinderGeometry(0.35, 0.45, 2.5, 16);
+    const stack = new THREE.Mesh(stackGeom, materials.furnaceStack);
+    stack.position.y = 5.45;
+    group.add(stack);
+
+    // Skorstensmynning
+    const capGeom = new THREE.CylinderGeometry(0.45, 0.35, 0.2, 16);
+    const cap = new THREE.Mesh(capGeom, materials.furnaceStack);
+    cap.position.y = 6.8;
+    group.add(cap);
+
+    // Rörslinga synlig på sidan
+    for (let i = 0; i < 3; i++) {
+        const tubeGeom = new THREE.CylinderGeometry(0.06, 0.06, 2.6, 8);
+        const tube = new THREE.Mesh(tubeGeom, materials.furnaceStack);
+        tube.position.set(-0.6 + i * 0.6, 1.5, 1.05);
+        group.add(tube);
+    }
+
+    // Stöd/ben
+    const legGeom = new THREE.BoxGeometry(0.2, 0.5, 0.2);
+    const positions = [[-1, 0.25, -0.8], [1, 0.25, -0.8], [-1, 0.25, 0.8], [1, 0.25, 0.8]];
+    for (const [x, y, z] of positions) {
+        const leg = new THREE.Mesh(legGeom, materials.handwheel);
+        leg.position.set(x, y, z);
+        group.add(leg);
+    }
+
+    group.userData.connectionRadius = 1.5;
     group.userData.connectionHeight = 0.8;
 
     return group;
